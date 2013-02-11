@@ -25,7 +25,7 @@ module Sidekiq
       @in_progress = {}
       @done = false
       @busy = []
-      @fetcher = Fetcher.new(current_actor, options)
+      @fetcher = Manager.fetcher_strategy.new(current_actor, options)
       @ready = @count.times.map { Processor.new_link(current_actor) }
       procline(options[:tag] ? "#{options[:tag]} " : '')
     end
@@ -160,6 +160,10 @@ module Sidekiq
     def procline(tag)
       $0 = "sidekiq #{Sidekiq::VERSION} #{tag}[#{@busy.size} of #{@count} busy]#{stopped? ? ' stopping' : ''}"
       after(5) { procline(tag) }
+    end
+
+    def self.fetcher_strategy
+      Sidekiq.options[:fetcher] || Fetcher
     end
   end
 end
