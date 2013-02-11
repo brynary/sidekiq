@@ -36,7 +36,7 @@ module Sidekiq
         timeout = options[:timeout]
 
         @done = true
-        Sidekiq::Fetcher.done!
+        Manager.fetcher_strategy.done!
         @fetcher.async.terminate if @fetcher.alive?
 
         logger.info { "Shutting down #{@ready.size} quiet workers" }
@@ -118,7 +118,7 @@ module Sidekiq
           # contract says that jobs are run AT LEAST once. Process termination
           # is delayed until we're certain the jobs are back in Redis because
           # it is worse to lose a job than to run it twice.
-          Sidekiq::Fetcher.strategy.bulk_requeue(@in_progress.values)
+          Manager.fetcher_strategy.strategy.bulk_requeue(@in_progress.values)
 
           # Clearing workers in Redis
           # NOTE: we do this before terminating worker threads because the
